@@ -67,3 +67,11 @@ async def ping_and_save_new_url(url_id: int):
     finally:
         db.close() # Safe disposal
 ```
+
+---
+
+## 🧠 Session Log: Reported Issue Fixes
+- Added GitHub Codespaces public preview support and documented the public URL.
+- Updated `README.md` with the correct public preview link.
+- Fixed frontend logic so targets without completed checks are treated as `Pending` and do not count as `DOWN`.
+- Improved the status badge to display actual failed HTTP status codes when available.

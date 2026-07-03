@@ -23,6 +23,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root endpoint for health check
+@app.get("/")
+async def root():
+    return {"message": "Uptime Monitor API", "status": "running"}
+
 # Start background pinger on app startup
 @app.on_event("startup")
 async def startup_event():

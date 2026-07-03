@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Use a relative base URL so the same public domain can proxy API calls.
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 function App() {
   const [urls, setUrls] = useState([]);
@@ -125,12 +126,16 @@ function App() {
     }
   };
 
+  const isUpCheck = (check) => check && check.status_code !== null && check.status_code >= 200 && check.status_code < 400;
+  const hasCheck = (url) => !!url.latest_check;
+
   // Helpers to compute statistics
   const totalMonitored = urls.length;
-  const upUrls = urls.filter(u => u.latest_check && u.latest_check.status_code >= 200 && u.latest_check.status_code < 400).length;
-  const downUrls = urls.filter(u => !u.latest_check || u.latest_check.status_code === null || u.latest_check.status_code >= 400).length;
+  const upUrls = urls.filter(u => isUpCheck(u.latest_check)).length;
+  const downUrls = urls.filter(u => hasCheck(u) && !isUpCheck(u.latest_check)).length;
+  const pendingUrls = urls.filter(u => !hasCheck(u)).length;
   
-  const upUrlsWithSpeed = urls.filter(u => u.latest_check && u.latest_check.status_code >= 200 && u.latest_check.status_code < 400 && u.latest_check.response_time_ms);
+  const upUrlsWithSpeed = urls.filter(u => isUpCheck(u.latest_check) && u.latest_check.response_time_ms);
   const avgResponseTime = upUrlsWithSpeed.length > 0
     ? roundTo(upUrlsWithSpeed.reduce((sum, u) => sum + u.latest_check.response_time_ms, 0) / upUrlsWithSpeed.length, 1)
     : 0;
@@ -146,9 +151,9 @@ function App() {
                           u.url?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (statusFilter === 'all') return matchesSearch;
-    const isUp = u.latest_check && u.latest_check.status_code >= 200 && u.latest_check.status_code < 400;
-    if (statusFilter === 'up') return matchesSearch && isUp;
-    if (statusFilter === 'down') return matchesSearch && !isUp;
+    if (statusFilter === 'up') return matchesSearch && isUpCheck(u.latest_check);
+    if (statusFilter === 'down') return matchesSearch && hasCheck(u) && !isUpCheck(u.latest_check);
+    if (statusFilter === 'pending') return matchesSearch && !hasCheck(u);
     return matchesSearch;
   });
 
@@ -279,6 +284,12 @@ function App() {
           >
             DOWN ({downUrls})
           </button>
+          <button
+            className={`tab-btn ${statusFilter === 'pending' ? 'tab-active' : ''}`}
+            onClick={() => setStatusFilter('pending')}
+          >
+            Pending ({pendingUrls})
+          </button>
         </div>
       </section>
 
@@ -312,7 +323,7 @@ function App() {
               
               if (hasChecked) {
                 statusClass = isUp ? 'status-up' : 'status-down';
-                statusText = isUp ? `UP (${u.latest_check.status_code})` : 'DOWN';
+                statusText = isUp ? `UP (${u.latest_check.status_code})` : `DOWN (${u.latest_check.status_code || 'err'})`;
               }
               if (checking) {
                 statusClass = 'status-checking';

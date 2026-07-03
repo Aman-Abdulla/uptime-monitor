@@ -12,9 +12,10 @@ Run the following command in the project root to spin up the backend API, fronte
 docker compose up --build
 ```
 
-Once running, access the services locally at:
-- **Frontend Dashboard:** `http://localhost:3000`
-- **Backend API Docs (Swagger):** `http://localhost:8000/docs`
+Once running, access the services at:
+- **Public Preview URL:** `https://fantastic-space-engine-r4p966j544hv6g-3000.app.github.dev`
+- **Local Frontend Dashboard:** `http://localhost:3000`
+- **Local Backend API Docs (Swagger):** `http://localhost:8000/docs`
 
 ---
 
